@@ -1,0 +1,27 @@
+name: Container Scan (Trivy)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  container-scan:
+    name: Build & Scan Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t devsecops-vulnerable-api:latest .
+
+      - name: Run Trivy Vulnerability Scanner (Image)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'devsecops-vulnerable-api:latest'
+          format: 'table'
+          exit-code: '1' # Уронить пайплайн при находках
+          ignore-unfixed: false
+          severity: 'HIGH,CRITICAL'
