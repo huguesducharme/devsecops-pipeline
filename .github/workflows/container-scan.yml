@@ -17,11 +17,34 @@ jobs:
       - name: Build Docker image
         run: docker build -t devsecops-vulnerable-api:latest .
 
-      - name: Run Trivy Vulnerability Scanner (Image)
+      - name: Generate JSON for DefectDojo
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'devsecops-vulnerable-api:latest'
+          format: 'json'
+          output: 'trivy-image.json'
+          ignore-unfixed: false
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0' # Не роняем пайплайн, просто сохраняем файл
+
+      - name: Send Container Scan to DefectDojo
+        run: |
+          curl -X POST "${{ secrets.DOJO_URL }}/api/v2/import-scan/" \
+            -H "Authorization: Token ${{ secrets.DOJO_API_KEY }}" \
+            -H "ngrok-skip-browser-warning: true" \
+            -F "scan_type=Trivy Scan" \
+            -F "file=@trivy-image.json" \
+            -F "product_type_name=Pet Projects" \
+            -F "product_name=devsecops-pipeline" \
+            -F "engagement_name=Trivy Container Scan" \
+            -F "auto_create_context=true" \
+            -F "close_old_findings=true"
+
+      - name: Run Trivy Vulnerability Scanner (Table Output)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'devsecops-vulnerable-api:latest'
           format: 'table'
-          exit-code: '1' # Уронить пайплайн при находках
           ignore-unfixed: false
           severity: 'HIGH,CRITICAL'
+          exit-code: '1' # Уронить пайплайн при находках
