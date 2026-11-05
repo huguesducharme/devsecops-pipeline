@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/net/html"
 )
 
 // Уязвимость 1: Утечка секрета (поймает Gitleaks)
 const AWSAccessKeyId = "AKIAIOSFODNN7EXAMPLE"
 
 func main() {
+	_ = html.Node{}
+	_ = jwt.MapClaims{}
+
 	// Уязвимость 2: Command Injection (поймает Semgrep)
 	http.HandleFunc("/api/ping", func(w http.ResponseWriter, r *http.Request) {
 		target := r.URL.Query().Get("target")
