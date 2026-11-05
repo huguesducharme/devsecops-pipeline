@@ -1,5 +1,5 @@
 # Стадия 1: Сборка приложения
-FROM golang:1.23.0-alpine AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
 COPY . .
 
