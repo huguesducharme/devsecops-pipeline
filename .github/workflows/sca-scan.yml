@@ -31,6 +31,5 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          ignore-unfixed: true
           severity: 'MEDIUM,HIGH,CRITICAL'
           exit-code: '1' # Роняем пайплайн, если есть уязвимости
