@@ -32,5 +32,5 @@ jobs:
         with:
           scan-type: 'fs'
           ignore-unfixed: true
-          severity: 'HIGH,CRITICAL'
+          severity: 'MEDIUM,HIGH,CRITICAL'
           exit-code: '1' # Роняем пайплайн, если есть уязвимости
