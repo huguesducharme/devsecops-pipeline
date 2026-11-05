@@ -1,0 +1,15 @@
+rules:
+  - id: custom-cmd-injection-concat
+    pattern: exec.Command("sh", "-c", "..." + $VAR)
+    message: "Кастомное правило: Command Injection! Небезопасная конкатенация строк в exec.Command."
+    languages: [go]
+    severity: ERROR
+    
+  - id: custom-sqli-fmt-sprintf
+    pattern: |
+      $Q := fmt.Sprintf("...", $VAR)
+      ...
+      $DB.Query($Q)
+    message: "Кастомное правило: SQL-инъекция! Переменная передается в запрос базы данных через fmt.Sprintf."
+    languages: [go]
+    severity: ERROR

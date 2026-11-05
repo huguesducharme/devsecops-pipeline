@@ -8,7 +8,7 @@ import (
 )
 
 // Уязвимость 1: Утечка секрета (поймает Gitleaks)
-const AWSAccessKeyId = "AKIAIOSFODNN7REALKEY"
+const AWSAccessKeyId = "AKIAIOSFODNN7EXAMPLE"
 
 func main() {
 	// Уязвимость 2: Command Injection (поймает Semgrep)
