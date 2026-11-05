@@ -1,0 +1,48 @@
+name: DAST Scanning (ZAP)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  dast-scan:
+    name: Ephemeral App & ZAP Baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Application Image
+        run: docker build -t devsecops-vulnerable-api:latest .
+
+      - name: Run App in Ephemeral Container
+        run: |
+          # Поднимаем приложение в фоне и пробрасываем порт
+          docker run -d -p 8080:8080 --name test-api devsecops-vulnerable-api:latest
+          echo "Даем приложению 5 секунд на старт..."
+          sleep 5
+          # Проверяем, что оно отвечает
+          curl -s http://localhost:8080 || true
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:8080'
+          fail_action: false # Не роняем пайплайн до отправки отчета
+          # Экшен автоматически сгенерирует файл report_json.json
+
+      - name: Send DAST to DefectDojo
+        if: always()
+        run: |
+          curl -X POST "${{ secrets.DOJO_URL }}/api/v2/import-scan/" \
+            -H "Authorization: Token ${{ secrets.DOJO_API_KEY }}" \
+            -H "ngrok-skip-browser-warning: true" \
+            -F "scan_type=ZAP Scan" \
+            -F "file=@report_json.json" \
+            -F "product_type_name=Pet Projects" \
+            -F "product_name=devsecops-pipeline" \
+            -F "engagement_name=OWASP ZAP DAST" \
+            -F "auto_create_context=true" \
+            -F "close_old_findings=true"
