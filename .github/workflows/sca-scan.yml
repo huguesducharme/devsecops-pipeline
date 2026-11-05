@@ -21,15 +21,21 @@ jobs:
           format: 'cyclonedx'
           output: 'sbom.json'
 
-      - name: Upload SBOM as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-report
-          path: sbom.json
+      - name: Send SBOM to DefectDojo
+        run: |
+          curl -X POST "${{ secrets.DOJO_URL }}/api/v2/import-scan/" \
+            -H "Authorization: Token ${{ secrets.DOJO_API_KEY }}" \
+            -F "scan_type=CycloneDX Scan" \
+            -F "file=@sbom.json" \
+            -F "product_type_name=Pet Projects" \
+            -F "product_name=devsecops-pipeline" \
+            -F "engagement_name=Trivy SCA Scan" \
+            -F "auto_create_context=true" \
+            -F "close_old_findings=true"
 
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           severity: 'MEDIUM,HIGH,CRITICAL'
-          exit-code: '1' # Роняем пайплайн, если есть уязвимости
+          exit-code: '1'
